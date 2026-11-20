@@ -128,11 +128,14 @@ def draw_map(draw, x0, y0, w, h, pins):
     for name, pts in CONTINENTS.items():
         poly = [project(lo, la, x0, y0, w, h) for lo, la in pts]
         draw.polygon(poly, fill=(240, 236, 222), outline=(70, 70, 66))
-    # pins: (lon, lat, story no., label, label_dx, label_dy)
+    # pins: (lon, lat, story no., label, label_dx, label_dy[, radius])
     # label_dx/dy = offset in px from pin centre to label-box centre.
-    # Pin sites are nudged a few degrees off their true location so every
-    # pair of pin centres is >=16px apart; labels sit clear of pins and
-    # each other, joined to their pin by a thin leader line.
+    # Pin sites are nudged a few degrees off their true location so pin
+    # centres stay apart; labels sit clear of pins and each other,
+    # joined to their pin by a thin leader line. The East-Mediterranean
+    # cluster (5 Antalya, 12 Kerch, 13 Gaza, 14 Gulf) is too tight for
+    # r=10 at true locations, so those four pins use r=8; the smallest
+    # centre gap anywhere is 14.1px (pins 5/13), all other pairs >=16px.
     fnum = F(SANS_B, 11)
     flab = F(SANS_B, 9)
     for pin in pins:
@@ -140,7 +143,7 @@ def draw_map(draw, x0, y0, w, h, pins):
         dx = pin[4] if len(pin) > 4 else 0
         dy = pin[5] if len(pin) > 5 else 22
         px, py = project(lon, lat, x0, y0, w, h)
-        r = 10
+        r = pin[6] if len(pin) > 6 else 10
         if label:
             lw = draw.textlength(label, font=flab)
             cx = px + dx
@@ -437,20 +440,22 @@ def build():
     # 3 New York, 5 Antalya, 6 Copenhagen, 8 Canberra, 9 Seoul,
     # 10 Odisha, 11 Bentonville, 12 Kerch, 13 Gaza, 14 Gulf, 15 Dhaka.
     # 4 is fictional (Los Santos) and 7 shares New York with pin 3, so
-    # neither gets its own pin. Sites are nudged a few degrees so every
-    # pair of pin centres is >=16px apart (min is 17.0px, pins 5/12).
+    # neither gets its own pin. Pins 2 (The Hague) and 13 (Gaza) sit on
+    # their true locations; pin 6 (Copenhagen) is nudged 1 deg east so
+    # pins 2/6 stay 16.3px apart, pin 5 (Antalya) 1 deg west / 0.5 deg
+    # north so pins 5/13 stay 14.1px apart (r=8 cluster, see draw_map).
     pins = [(122, 22, 1, "Shenzhen", 48, 0),
-            (0, 49, 2, "The Hague", -58, -6),
+            (4.3, 52.1, 2, "The Hague", -58, -6),
             (-74, 41, 3, "New York", 0, 26),
-            (27, 38.5, 5, "Antalya", -50, 7),
-            (16, 58, 6, "Copenhagen", 0, -17),
+            (26, 39, 5, "Antalya", -50, 7, 8),
+            (17, 58, 6, "Copenhagen", 0, -17),
             (149, -35, 8, "Canberra", 0, -22),
             (127, 37, 9, "Seoul", 0, -22),
             (83, 18, 10, "Odisha", -8, 30),
             (-94, 36, 11, "Bentonville", -50, 0),
-            (38, 47, 12, "Kerch", 28, -24),
-            (37, 28.5, 13, "Gaza", -25, 24),
-            (54, 24, 14, "Gulf", 18, -26),
+            (38, 47, 12, "Kerch", 28, -24, 8),
+            (34.5, 31.5, 13, "Gaza", -25, 24, 8),
+            (54, 24, 14, "Gulf", 18, -26, 8),
             (92, 27, 15, "Dhaka", 42, 28)]
     draw_map(d, map_x, map_y + 18, map_w, map_h - 18, pins)
 
